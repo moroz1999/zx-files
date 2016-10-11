@@ -1,7 +1,7 @@
 <?php
-namespace Trd;
+namespace Zx\Disk;
 
-class Disk
+class Trd
 {
     use ByteParser;
 
@@ -159,9 +159,12 @@ class File
 {
     use ByteParser;
 
+    /**
+     * @var Trd
+     */
+    protected $diskImage;
     protected $name;
     protected $extension;
-    protected $diskImage;
 
     protected $programVarsLength;
     protected $programLength;
