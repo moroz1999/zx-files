@@ -1,15 +1,28 @@
 <?php
 namespace Zx\Disk;
 
-class Trd
+trait ByteParser
+{
+    function parseByte($string, $offset)
+    {
+        return ord(substr($string, $offset, 1));
+    }
+
+    function parseWord($string, $offset)
+    {
+        return ord(substr($string, $offset, 1)) + ord(substr($string, $offset + 1, 1)) * 0x100;
+    }
+}
+
+trait Disk
 {
     use ByteParser;
-
     protected $binary;
     protected $files;
 
     protected $firstFreeSector;
     protected $firstFreeTrack;
+
     protected $diskType;
     protected $sides;
     protected $tracks;
@@ -17,6 +30,11 @@ class Trd
     protected $freeSectors;
     protected $deletedFiles;
     protected $label;
+
+    protected function getFilesDataOffset()
+    {
+        return $this->filesDataOffset;
+    }
 
     public function setBinary($binary)
     {
@@ -26,44 +44,12 @@ class Trd
         }
     }
 
-    protected function parseBinary()
-    {
-        $start = 0;
-        while (($fileHeader = substr($this->binary, $start, 16)) && (ord(substr($fileHeader, 0, 1)) !== 0)) {
-            $start = $start + 16;
-            $file = new File($this);
-            if ($file->setFileHeader($fileHeader)) {
-                $this->files[] = $file;
-            }
-        }
-        $this->firstFreeSector = $this->parseByte($this->binary, 2048 + 225);
-        $this->firstFreeTrack = $this->parseByte($this->binary, 2048 + 226);
-        $this->diskType = $this->parseByte($this->binary, 2048 + 227);
-        if ($this->diskType == 22) {
-            $this->sides = 2;
-            $this->tracks = 80;
-        } elseif ($this->diskType == 23) {
-            $this->sides = 2;
-            $this->tracks = 40;
-        } elseif ($this->diskType == 24) {
-            $this->sides = 1;
-            $this->tracks = 80;
-        } elseif ($this->diskType == 25) {
-            $this->sides = 1;
-            $this->tracks = 40;
-        }
-        $this->filesNumber = $this->parseByte($this->binary, 2048 + 228);
-        $this->freeSectors = $this->parseByte($this->binary, 2048 + 229);
-        $this->deletedFiles = $this->parseByte($this->binary, 2048 + 244);
-        $this->label = substr($this->binary, 2048 + 245);
-    }
-
     public function getData($start = 0, $offset = null)
     {
         if ($offset === null) {
-            return substr($this->binary, $start);
+            return substr($this->binary, $start + $this->getFilesDataOffset());
         }
-        return substr($this->binary, $start, $offset);
+        return substr($this->binary, $start + $this->getFilesDataOffset(), $offset);
     }
 
     /**
@@ -155,6 +141,95 @@ class Trd
     }
 }
 
+class Trd
+{
+    use Disk;
+    protected $filesDataOffset = 0;
+    const FILE_HEADER_ITEM_LENGTH = 14;
+
+    protected function parseBinary()
+    {
+        $start = 0;
+        while (($fileHeader = substr($this->binary, $start, self::FILE_HEADER_ITEM_LENGTH)) && (ord(substr($fileHeader, 0, 1)) !== 0)) {
+            $start = $start + self::FILE_HEADER_ITEM_LENGTH;
+            $file = new File($this);
+            if ($file->setFileHeader($fileHeader)) {
+                $this->files[] = $file;
+            }
+        }
+        $this->firstFreeSector = $this->parseByte($this->binary, 2048 + 225);
+        $this->firstFreeTrack = $this->parseByte($this->binary, 2048 + 226);
+        $this->diskType = $this->parseByte($this->binary, 2048 + 227);
+        if ($this->diskType == 22) {
+            $this->sides = 2;
+            $this->tracks = 80;
+        } elseif ($this->diskType == 23) {
+            $this->sides = 2;
+            $this->tracks = 40;
+        } elseif ($this->diskType == 24) {
+            $this->sides = 1;
+            $this->tracks = 80;
+        } elseif ($this->diskType == 25) {
+            $this->sides = 1;
+            $this->tracks = 40;
+        }
+        $this->filesNumber = $this->parseByte($this->binary, 2048 + 228);
+        $this->freeSectors = $this->parseWord($this->binary, 2048 + 229);
+        $this->deletedFiles = $this->parseByte($this->binary, 2048 + 244);
+        $this->label = substr($this->binary, 2048 + 245);
+    }
+}
+
+class Scl
+{
+    use Disk;
+    protected $filesDataOffset = 0;
+    const FILE_HEADER_ITEM_LENGTH = 14;
+    const SECTORS_IN_TRACK = 16;
+    const SECTOR_LENGTH = 256;
+
+    public function __construct()
+    {
+        $this->diskType = 22;
+        $this->sides = 2;
+        $this->tracks = 80;
+        $this->label = '';
+    }
+
+    protected function parseBinary()
+    {
+        if (substr($this->binary, 0, 8) == 'SINCLAIR') {
+            $filesNumber = $this->filesNumber = $this->parseByte($this->binary, 8);
+            $this->filesDataOffset = $filesNumber * self::FILE_HEADER_ITEM_LENGTH - self::SECTORS_IN_TRACK * self::SECTOR_LENGTH;
+            $start = 9;
+            $this->firstFreeSector = 0;
+            $this->firstFreeTrack = 1;
+            while (($fileHeader = substr($this->binary, $start, self::FILE_HEADER_ITEM_LENGTH)) && ($filesNumber--)) {
+                $start = $start + self::FILE_HEADER_ITEM_LENGTH;
+                $file = new File($this);
+                if ($file->setFileHeader($fileHeader)) {
+
+                    $fileSectorsLength = $file->getSectorsLength();
+                    $file->setSector($this->firstFreeSector);
+                    $file->setTrack($this->firstFreeTrack);
+                    $this->files[] = $file;
+
+                    $tracks = floor($fileSectorsLength / self::SECTORS_IN_TRACK);
+                    $sectors = $fileSectorsLength - $tracks * self::SECTORS_IN_TRACK;
+
+                    $this->firstFreeSector += $sectors;
+                    if ($this->firstFreeSector >= self::SECTORS_IN_TRACK) {
+                        $this->firstFreeSector -= self::SECTORS_IN_TRACK;
+                        $this->firstFreeTrack++;
+                    }
+                    $this->firstFreeTrack += $tracks;
+                }
+            }
+            $this->freeSectors = $this->tracks * $this->sides - ($this->firstFreeTrack * self::SECTORS_IN_TRACK + $this->firstFreeSector);
+        }
+    }
+}
+
 class File
 {
     use ByteParser;
@@ -181,6 +256,7 @@ class File
     protected $sectorsLength;
     protected $sector;
     protected $track;
+
     protected $deleted;
 
     const SECTOR_LENGTH = 256;
@@ -193,17 +269,21 @@ class File
 
     public function setFileHeader($fileHeader)
     {
-        if (strlen($fileHeader) == 16) {
+        $headerLength = strlen($fileHeader);
+        if ($headerLength == 16 || $headerLength == 14) {
             if ($this->parseByte($fileHeader, 0) == 1) {
                 $this->deleted = true;
+            } else {
+                $this->deleted = false;
             }
-            $this->name = substr($fileHeader, 0, 8);
+            $this->name = trim(substr($fileHeader, 0, 8));
             $this->extension = substr($fileHeader, 8, 1);
 
             $this->sectorsLength = $this->parseByte($fileHeader, 13);
-            $this->sector = $this->parseByte($fileHeader, 14);
-            $this->track = $this->parseByte($fileHeader, 15);
-
+            if ($headerLength == 16) {
+                $this->sector = $this->parseByte($fileHeader, 14);
+                $this->track = $this->parseByte($fileHeader, 15);
+            }
             if ($this->extension == 'B') {
                 $this->programVarsLength = $this->parseWord($fileHeader, 9);
                 $this->programLength = $this->parseWord($fileHeader, 11);
@@ -218,13 +298,12 @@ class File
             } else {
                 $this->codeStart = $this->parseWord($fileHeader, 9);
                 $this->codeLength = $this->parseWord($fileHeader, 11);
-                if (floor($this->codeLength / self::SECTOR_LENGTH) == $this->sectorsLength) {
+                if (ceil($this->codeLength / self::SECTOR_LENGTH) == $this->sectorsLength) {
                     $this->dataLength = $this->codeLength;
                 } else {
                     $this->dataLength = $this->sectorsLength * self::SECTOR_LENGTH;
                 }
             }
-
 
             return true;
         }
@@ -344,6 +423,22 @@ class File
     }
 
     /**
+     * @param mixed $sector
+     */
+    public function setSector($sector)
+    {
+        $this->sector = $sector;
+    }
+
+    /**
+     * @param mixed $track
+     */
+    public function setTrack($track)
+    {
+        $this->track = $track;
+    }
+
+    /**
      * @return mixed
      */
     public function getDeleted()
@@ -354,18 +449,5 @@ class File
     public function getContents()
     {
         return $this->diskImage->getData(($this->track * self::SECTORS_IN_TRACK + $this->sector) * self::SECTOR_LENGTH, $this->dataLength);
-    }
-}
-
-trait ByteParser
-{
-    function parseByte($string, $offset)
-    {
-        return ord(substr($string, $offset, 1));
-    }
-
-    function parseWord($string, $offset)
-    {
-        return ord(substr($string, $offset, 1)) + ord(substr($string, $offset + 1, 1)) * 0x100;
     }
 }
