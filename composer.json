@@ -1,14 +1,22 @@
 {
-    "name": "moroz1999/zx-files",
-    "description": "Zx Spectrum file containers parsers",
-    "keywords": ["php", "zx spectrum", "trd", "scl", "tap"],
-    "homepage": "https://github.com/moroz1999/zx-files",
-    "license": "CC0 1.0 Universal",
-    "type": "package",
-    "require": {
-        "php": ">=7.0"
-    },
-    "autoload": {
-        "psr-4": { "ZxFiles": "src/Zx/" }
+  "name": "moroz1999/zx-files",
+  "description": "Zx Spectrum file containers parsers",
+  "keywords": [
+    "php",
+    "zx spectrum",
+    "trd",
+    "scl",
+    "tap"
+  ],
+  "homepage": "https://github.com/moroz1999/zx-files",
+  "license": "CC0 1.0 Universal",
+  "type": "package",
+  "require": {
+    "php": ">=7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ZxFiles": "src/Zx/"
     }
+  }
 }
