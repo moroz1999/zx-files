@@ -16,7 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "ZxFiles": "src/ZxFiles/"
+      "ZxFiles\": "src/ZxFiles/"
     }
   }
 }
