@@ -5,6 +5,9 @@ trait Disk
 {
     use ByteParser;
     protected $binary;
+    /**
+     * @var File[]
+     */
     protected $files;
 
     protected $firstFreeSector;
@@ -48,7 +51,7 @@ trait Disk
     }
 
     /**
-     * @return mixed
+     * @return File[]
      */
     public function getFiles()
     {

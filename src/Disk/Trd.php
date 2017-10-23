@@ -5,7 +5,7 @@ class Trd
 {
     use Disk;
     protected $filesDataOffset = 0;
-    const FILE_HEADER_ITEM_LENGTH = 14;
+    const FILE_HEADER_ITEM_LENGTH = 16;
 
     protected function parseBinary()
     {
