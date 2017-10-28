@@ -1,9 +1,10 @@
 <?php
 namespace ZxFiles\Disk;
+use ZxFiles;
 
 trait Disk
 {
-    use ByteParser;
+    use ZxFiles\ByteParser;
     protected $binary;
     /**
      * @var File[]

@@ -1,13 +1,13 @@
 <?php
 namespace ZxFiles\Disk;
-
+use ZxFiles;
 
 class File
 {
-    use ByteParser;
+    use ZxFiles\ByteParser;
 
     /**
-     * @var Trd
+     * @var Disk
      */
     protected $diskImage;
     protected $name;
@@ -18,11 +18,11 @@ class File
 
     protected $dataArrayLength;
 
-    protected $printNumber;
-    protected $printLength;
-
     protected $codeStart;
     protected $codeLength;
+
+    protected $printNumber;
+    protected $printLength;
 
     protected $dataLength;
     protected $sectorsLength;
@@ -104,14 +104,6 @@ class File
     public function getExtension()
     {
         return $this->extension;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDiskImage()
-    {
-        return $this->diskImage;
     }
 
     /**

@@ -1,5 +1,5 @@
 <?php
-namespace ZxFiles\Disk;
+namespace ZxFiles;
 
 trait ByteParser
 {
