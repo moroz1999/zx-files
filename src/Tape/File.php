@@ -36,26 +36,23 @@ class File
 
     public function setFileHeader($fileHeader)
     {
-        if (strlen($fileHeader) == 17) {
-            $this->type = $this->parseByte($fileHeader, 0);
-            if ($this->type == self::PROGRAM) {
-                $this->extension = 'B';
-            } else {
-                $this->extension = 'C';
-            }
-            $this->name = trim(substr($fileHeader, 1, 10));
-            $this->dataLength = $this->parseWord($fileHeader, 11);
-            if ($this->type == self::PROGRAM) {
-                $this->autoStartLine = $this->parseWord($fileHeader, 13);
-                $this->variableAreaStart = $this->parseWord($fileHeader, 15);
-            } elseif ($this->type == self::CODE) {
-                $this->codeStart = $this->parseWord($fileHeader, 13);
-            } else {
-                //                todo: find examples of other files
-            }
-
-            return true;
+        $this->type = $this->parseByte($fileHeader, 0);
+        if ($this->type == self::PROGRAM) {
+            $this->extension = 'B';
+        } else {
+            $this->extension = 'C';
         }
+        $this->name = trim(substr($fileHeader, 1, 10));
+        $this->dataLength = $this->parseWord($fileHeader, 11);
+        if ($this->type == self::PROGRAM) {
+            $this->autoStartLine = $this->parseWord($fileHeader, 13);
+            $this->variableAreaStart = $this->parseWord($fileHeader, 15);
+        } elseif ($this->type == self::CODE) {
+            $this->codeStart = $this->parseWord($fileHeader, 13);
+        } else {
+            //                todo: find examples of other files
+        }
+
         return true;
     }
 

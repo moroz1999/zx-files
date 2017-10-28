@@ -30,15 +30,20 @@ class Tap
 
         $dataFilesAmount = 1;
 
-        while ($pointer <= strlen($this->binary)) {
+        $binaryLength = strlen($this->binary);
+        while ($pointer <= $binaryLength) {
             $blockSize = $this->parseWord($this->binary, $pointer);
             $pointer += 2;
 
-            $blockType = $this->parseByte($this->binary, $pointer); //0 - header, #ff - data
-            $pointer += 1;
-            $dataLength = $blockSize - 2;
+            $blockType = $this->parseByte($this->binary, $pointer);
 
-            if ($blockType == 0) {
+            $pointer += 1;
+            if ($blockSize >=2){
+                $dataLength = $blockSize - 2;
+            } else {
+                $dataLength = 0;
+            }
+            if ($dataLength > 0 && $blockType == 0) {
                 $file = new File($this);
 
                 if ($fileHeader = substr($this->binary, $pointer, $dataLength)) {
@@ -46,11 +51,10 @@ class Tap
                         $this->files[] = $file;
                     }
                 }
-                $pointer += 17;
+                $pointer += $dataLength;
                 $checksum = $this->parseByte($this->binary, $pointer);
                 $pointer += 1;
             } else {
-
                 if (!$file) {
                     $file = new File($this);
                     $this->files[] = $file;

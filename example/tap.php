@@ -3,11 +3,11 @@ include_once('../src/ByteParser.php');
 include_once('../src/Tape/File.php');
 include_once('../src/Tape/Tap.php');
 
-$disk = new ZxFiles\Tape\Tap();
+$tape = new ZxFiles\Tape\Tap();
 
-$content = file_get_contents('Rod-Land.tap');
+$content = file_get_contents('test.tap');
 
-$disk->setBinary($content);
-foreach ($disk->getFiles() as $file) {
+$tape->setBinary($content);
+foreach ($tape->getFiles() as $file) {
     echo $file->getFullName() . ' ' . $file->getDataLength() . '<br/>';
 }
