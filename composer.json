@@ -12,7 +12,7 @@
   "license": "CC0 1.0 Universal",
   "type": "package",
   "require": {
-    "php": ">=7.0"
+    "php": ">=5.6"
   },
   "autoload": {
     "psr-4": {
