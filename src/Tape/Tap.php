@@ -31,7 +31,7 @@ class Tap
         $dataFilesAmount = 1;
 
         $binaryLength = strlen($this->binary);
-        while ($pointer <= $binaryLength) {
+        while ($pointer < $binaryLength) {
             $blockSize = $this->parseWord($this->binary, $pointer);
             $pointer += 2;
 
