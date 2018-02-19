@@ -9,7 +9,7 @@
     "tap"
   ],
   "homepage": "https://github.com/moroz1999/zx-files",
-  "license": "CC0 1.0 Universal",
+  "license": "CC0-1.0",
   "type": "package",
   "require": {
     "php": ">=5.6"
