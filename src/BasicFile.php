@@ -4,7 +4,7 @@ namespace ZxFiles;
 class BasicFile
 {
     use ByteParser;
-    protected $tokensMap = array(
+    protected static $tokensMap = array(
         0   => '',
         1   => '',
         2   => '',
@@ -262,38 +262,75 @@ class BasicFile
         254 => ' RETURN ',
         255 => ' COPY ',
     );
+    protected $structure;
+    protected $binary;
 
-    public function getAsText($binary)
+    /**
+     * @param mixed $this ->binary
+     */
+    public function setBinary($binary)
     {
-        $result = '';
+        $this->binary = $binary;
+    }
 
-        $offset = 0;
-        while ($offset < strlen($binary)) {
-            $lineNumber = $this->parseWordBigEndian($binary, $offset);
-            $offset++;
-            $offset++;
-            $result .= '  ' . $lineNumber;
+    public function getAsText()
+    {
+        $result = false;
+        if ($rows = $this->getStructure()) {
+            $result = '';
+            foreach ($rows as $lineNumber => $text) {
+                $result .= '  ' . $lineNumber . $text . "\n";
+            }
+        }
+        return $result;
+    }
+    public function getAsHtml()
+    {
+        $result = false;
+        if ($rows = $this->getStructure()) {
+            $result = '';
+            foreach ($rows as $lineNumber => $text) {
+                $result .= '&nbsp;&nbsp' . $lineNumber . $text . "<br />";
+            }
+        }
+        return $result;
+    }
 
-            if ($lineLength = $this->parseWord($binary, $offset)) {
-                $offset++;
-                $offset++;
 
-                while ($lineLength--) {
-                    $i = $this->parseByte($binary, $offset);
+    public function getStructure()
+    {
+        if ($this->structure === null) {
+            if ($this->binary) {
+                $this->structure = [];
+
+                $offset = 0;
+                while ($offset < strlen($this->binary)) {
+                    $lineNumber = $this->parseWordBigEndian($this->binary, $offset);
                     $offset++;
-                    if ($i == 0x0d) {
-                        //end of line
-                        $result .= "\n";
-                    } elseif ($i == 0x0e) {
-                        //skip number value
-                        $offset += 4;
-                        $lineLength -= 4;
-                    } else {
-                        $result .= $this->tokensMap[$i];
+                    $offset++;
+                    $this->structure[$lineNumber] = '';
+
+                    if ($lineLength = $this->parseWord($this->binary, $offset)) {
+                        $offset++;
+                        $offset++;
+
+                        while ($lineLength--) {
+                            $i = $this->parseByte($this->binary, $offset);
+                            $offset++;
+                            if ($i == 0x0d) {
+                                //end of line
+                            } elseif ($i == 0x0e) {
+                                //skip number value
+                                $offset += 4;
+                                $lineLength -= 4;
+                            } else {
+                                $this->structure[$lineNumber] .= static::$tokensMap[$i];
+                            }
+                        }
                     }
                 }
             }
         }
-        return $result;
+        return $this->structure;
     }
 }

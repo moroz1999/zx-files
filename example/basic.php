@@ -2,7 +2,9 @@
 include_once('../src/ByteParser.php');
 include_once('../src/BasicFile.php');
 
-if ($bin = file_get_contents('boot.b')) {
-    $conv = new \ZxFiles\BasicFile();
-    echo '<pre>' . $conv->getAsText($bin) . '</pre>';
+if ($binary = file_get_contents('boot.b')) {
+    $basicFile = new \ZxFiles\BasicFile();
+    $basicFile->setBinary($binary);
+    echo '<pre>' . $basicFile->getAsText() . '</pre>';
+    echo $basicFile->getAsHtml();
 }
