@@ -134,20 +134,20 @@ class BasicFile
         126 => '~',
         127 => '©',
         128 => '',
-        129 => '',
-        130 => '',
+        129 => '▝',
+        130 => '▘',
         131 => '',
-        132 => '',
+        132 => '▗',
         133 => '',
-        134 => '',
-        135 => '',
-        136 => '',
-        137 => '',
+        134 => '▚',
+        135 => '▜',
+        136 => '▖',
+        137 => '▞',
         138 => '',
-        139 => '',
+        139 => '▛',
         140 => '',
-        141 => '',
-        142 => '',
+        141 => '▟',
+        142 => '▙',
         143 => '',
         144 => '[A]',
         145 => '[B]',
@@ -266,7 +266,7 @@ class BasicFile
     protected $binary;
 
     /**
-     * @param mixed $this ->binary
+     * @param mixed $binary
      */
     public function setBinary($binary)
     {
@@ -284,6 +284,7 @@ class BasicFile
         }
         return $result;
     }
+
     public function getAsHtml()
     {
         $result = false;
@@ -306,6 +307,10 @@ class BasicFile
                 $offset = 0;
                 while ($offset < strlen($this->binary)) {
                     $lineNumber = $this->parseWordBigEndian($this->binary, $offset);
+                    if ($lineNumber == 32938){
+                        //last line
+                        break;
+                    }
                     $offset++;
                     $offset++;
                     $this->structure[$lineNumber] = '';
