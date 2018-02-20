@@ -59,7 +59,7 @@ class File
             if ($this->extension == 'B') {
                 $this->programVarsLength = $this->parseWord($fileHeader, 9);
                 $this->programLength = $this->parseWord($fileHeader, 11);
-                $this->dataLength = $this->sectorsLength * self::SECTOR_LENGTH;
+                $this->dataLength = $this->programVarsLength;
             } elseif ($this->extension == 'D') {
                 $this->dataArrayLength = $this->parseWord($fileHeader, 11);
                 $this->dataLength = $this->dataArrayLength;

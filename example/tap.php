@@ -3,7 +3,7 @@ include_once('../src/ByteParser.php');
 include_once('../src/Tape/File.php');
 include_once('../src/Tape/Tap.php');
 
-$tape = new ZxFiles\Tape\Tap();
+$tape = new \ZxFiles\Tape\Tap();
 
 $content = file_get_contents('test.tap');
 
