@@ -11,5 +11,4 @@ $content = file_get_contents('test.scl');
 $disk->setBinary($content);
 foreach ($disk->getFiles() as $file) {
     echo $file->getFullName() . '<br/>';
-    file_put_contents($file->getFullName(), $file->getContents());
 }
