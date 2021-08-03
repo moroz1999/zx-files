@@ -1,13 +1,9 @@
 <?php
-include_once('../src/ByteParser.php');
-include_once('../src/Disk/Disk.php');
-include_once('../src/Disk/File.php');
-include_once('../src/Disk/Scl.php');
+include_once('../vendor/autoload.php');
+use \ZxFiles\Disk\Scl;
 
-$disk = new \ZxFiles\Disk\Scl();
-
+$disk = new Scl();
 $content = file_get_contents('test.scl');
-
 $disk->setBinary($content);
 foreach ($disk->getFiles() as $file) {
     echo $file->getFullName() . '<br/>';
