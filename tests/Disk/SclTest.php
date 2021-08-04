@@ -29,6 +29,7 @@ class SclTest extends TestCase
 
     public function testFile1(): void
     {
+        $this->scl->setBinary(file_get_contents(__DIR__ . '\..\bin\sample1\disk.scl'));
         $files = $this->scl->getFiles();
         $this->assertIsObject($files[0]);
         $this->assertEquals(md5($files[0]->getContents()), md5(file_get_contents(__DIR__ . '\..\bin\sample1\boot.b')));
@@ -36,6 +37,7 @@ class SclTest extends TestCase
 
     public function testFile2(): void
     {
+        $this->scl->setBinary(file_get_contents(__DIR__ . '\..\bin\sample1\disk.scl'));
         $files = $this->scl->getFiles();
         $this->assertIsObject($files[1]);
         $this->assertEquals(md5($files[1]->getContents()), md5(file_get_contents(__DIR__ . '\..\bin\sample1\data.c')));
@@ -43,6 +45,7 @@ class SclTest extends TestCase
 
     public function testFile3(): void
     {
+        $this->scl->setBinary(file_get_contents(__DIR__ . '\..\bin\sample1\disk.scl'));
         $files = $this->scl->getFiles();
         $this->assertIsObject($files[2]);
         $this->assertEquals(md5($files[2]->getContents()), md5(file_get_contents(__DIR__ . '\..\bin\sample1\splash.c')));

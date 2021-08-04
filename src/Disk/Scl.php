@@ -8,7 +8,7 @@ class Scl
     const FILE_HEADER_ITEM_LENGTH = 14;
     const SECTORS_IN_TRACK = 16;
     const SECTOR_LENGTH = 256;
-
+    const DATA_OFFSET = 9;
     public function __construct()
     {
         $this->diskType = 22;
@@ -21,7 +21,7 @@ class Scl
     {
         if (substr($this->binary, 0, 8) == 'SINCLAIR') {
             $filesNumber = $this->filesNumber = $this->parseByte($this->binary, 8);
-            $this->filesDataOffset = $filesNumber * self::FILE_HEADER_ITEM_LENGTH - self::SECTORS_IN_TRACK * self::SECTOR_LENGTH;
+            $this->filesDataOffset = self::DATA_OFFSET + $filesNumber * self::FILE_HEADER_ITEM_LENGTH - self::SECTORS_IN_TRACK * self::SECTOR_LENGTH;
             $start = 9;
             $this->firstFreeSector = 0;
             $this->firstFreeTrack = 1;
