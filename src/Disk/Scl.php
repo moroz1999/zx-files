@@ -1,9 +1,8 @@
 <?php
 namespace ZxFiles\Disk;
 
-class Scl
+class Scl extends Disk
 {
-    use Disk;
     protected $filesDataOffset = 0;
     const FILE_HEADER_ITEM_LENGTH = 14;
     const SECTORS_IN_TRACK = 16;

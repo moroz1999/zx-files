@@ -1,9 +1,8 @@
 <?php
 namespace ZxFiles\Disk;
 
-class Trd
+class Trd extends Disk
 {
-    use Disk;
     protected $filesDataOffset = 0;
     const FILE_HEADER_ITEM_LENGTH = 16;
 

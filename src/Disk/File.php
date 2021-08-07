@@ -1,5 +1,7 @@
 <?php
+
 namespace ZxFiles\Disk;
+
 use ZxFiles;
 
 class File
@@ -213,5 +215,10 @@ class File
     public function getContents()
     {
         return $this->diskImage->getData(($this->track * self::SECTORS_IN_TRACK + $this->sector) * self::SECTOR_LENGTH, $this->dataLength);
+    }
+
+    public function getLength(): int
+    {
+        return $this->dataLength;
     }
 }

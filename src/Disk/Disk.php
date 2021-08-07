@@ -2,7 +2,7 @@
 namespace ZxFiles\Disk;
 use ZxFiles;
 
-trait Disk
+abstract class Disk
 {
     use ZxFiles\ByteParser;
     protected $binary;
