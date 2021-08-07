@@ -7,22 +7,81 @@ use PHPUnit\Framework\TestCase;
 
 class TrdTest extends TestCase
 {
-    private ?Trd $trd;
-
-    public function setUp(): void
+    public function testParsesSample1Trd(): Trd
     {
-        parent::setUp();
-        $this->trd = new Trd();
+        $trd = new Trd();
+        $trd->setBinary(file_get_contents(__DIR__ . '\..\bin\size_matters_by_insiders.trd'));
+        $files = $trd->getFiles();
+        $this->assertIsArray($files);
+        $this->assertEquals(8, count($files));
+
+        return $trd;
     }
 
-    public function tearDown(): void
+    /**
+     * @depends      testParsesSample1Trd
+     * @dataProvider referenceFileInfoProvider
+     */
+    public function testFile(int $index, string $md5, string $fileName, int $size, Trd $trd): void
     {
-        $this->trd = NULL;
+        $files = $trd->getFiles();
+        $this->assertIsObject($files[$index]);
+        $this->assertEquals($md5, md5($files[$index]->getContents()));
+        $this->assertEquals($fileName, $files[$index]->getFullName());
+        $this->assertEquals($size, $files[$index]->getLength());
     }
-//    public function testParsesSample1Trd(): void
-//    {
-//        $this->trd->setBinary(file_get_contents(__DIR__ . '\..\bin\sample1\disk.trd'));
-//        $files = $this->trd->getFiles();
-//        $this->assertIsArray($files);
-//    }
+
+    public function referenceFileInfoProvider(): array
+    {
+        return [
+            [
+                'index' => 0,
+                'md5' => '6366804e118112cef73a7cd3ebd72ea0',
+                'fileName' => 'EFFECT.C',
+                'size' => 24064,
+            ],
+            [
+                'index' => 1,
+                'md5' => '524b61cd4c8fcf3935bd16b2e7baed3b',
+                'fileName' => 'PAGE0.C',
+                'size' => 7346,
+            ],
+            [
+                'index' => 2,
+                'md5' => 'dc0e8e18b986ea62ebe24950d073d95c',
+                'fileName' => 'PAGE1.C',
+                'size' => 16384,
+            ],
+            [
+                'index' => 3,
+                'md5' => '9fab2ff468ce30e8e1ba40893a30fd64',
+                'fileName' => 'PAGE2.C',
+                'size' => 16384,
+            ],
+            [
+                'index' => 4,
+                'md5' => 'bb7a816c471898ac8e2b65588f25ee24',
+                'fileName' => 'PAGE7.C',
+                'size' => 8738,
+            ],
+            [
+                'index' => 5,
+                'md5' => '996f38d4b7211370eb4283675e278b31',
+                'fileName' => 'PAGE4.C',
+                'size' => 14132,
+            ],
+            [
+                'index' => 6,
+                'md5' => '1f865055d8b75a10be9b2b658984051a',
+                'fileName' => 'PAGE6.C',
+                'size' => 14034,
+            ],
+            [
+                'index' => 7,
+                'md5' => '61cd05252af0ea9f43dad5a68f77e457',
+                'fileName' => 'PREVIEW.B',
+                'size' => 429,
+            ],
+        ];
+    }
 }
