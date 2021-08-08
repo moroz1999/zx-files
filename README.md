@@ -1,2 +1,8 @@
-# trd
-ZX Spectrum TR-DOS disk image parser
+# PHP-based ZX Spectrum file parsers
+
+## Disk images:
+* TRD
+* SCL
+
+## Tape images:
+* TAP
