@@ -7,10 +7,10 @@ use PHPUnit\Framework\TestCase;
 
 class SclTest extends TestCase
 {
-    public function testParsesSample1Scl(): Scl
+    public function testParsesSampleScl(): Scl
     {
         $scl = new Scl();
-        $scl->setBinary(file_get_contents(__DIR__ . '\..\bin\sample1.scl'));
+        $scl->setBinary(file_get_contents(realpath(__DIR__ . '\..\..\samples\b2bf.scl')));
         $files = $scl->getFiles();
         $this->assertIsArray($files);
         $this->assertEquals(3, count($files));
@@ -19,8 +19,8 @@ class SclTest extends TestCase
     }
 
     /**
-     * @depends      testParsesSample1Scl
-     * @dataProvider referenceFileInfoProvider
+     * @depends      testParsesSampleScl
+     * @dataProvider SampleFileInfoProvider
      */
     public function testFile(int $index, string $md5, string $fileName, int $size, Scl $scl): void
     {
@@ -28,10 +28,10 @@ class SclTest extends TestCase
         $this->assertIsObject($files[$index]);
         $this->assertEquals($md5, md5($files[$index]->getContents()));
         $this->assertEquals($fileName, $files[$index]->getFullName());
-        $this->assertEquals($size, $files[$index]->getLength());
+        $this->assertEquals($size, $files[$index]->getDataLength());
     }
 
-    public function referenceFileInfoProvider(): array
+    public function SampleFileInfoProvider(): array
     {
         return [
             [

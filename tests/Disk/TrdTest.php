@@ -7,20 +7,20 @@ use PHPUnit\Framework\TestCase;
 
 class TrdTest extends TestCase
 {
-    public function testParsesSample1Trd(): Trd
+    public function testParsesSampleTrd(): Trd
     {
         $trd = new Trd();
-        $trd->setBinary(file_get_contents(__DIR__ . '\..\bin\size_matters_by_insiders.trd'));
+        $trd->setBinary(file_get_contents(realpath(__DIR__ . '\..\..\samples\size_matters_by_insiders.trd')));
         $files = $trd->getFiles();
         $this->assertIsArray($files);
-        $this->assertEquals(8, count($files));
+        $this->assertCount(8, $files);
 
         return $trd;
     }
 
     /**
-     * @depends      testParsesSample1Trd
-     * @dataProvider referenceFileInfoProvider
+     * @depends      testParsesSampleTrd
+     * @dataProvider SampleFileInfoProvider
      */
     public function testFile(int $index, string $md5, string $fileName, int $size, Trd $trd): void
     {
@@ -28,10 +28,10 @@ class TrdTest extends TestCase
         $this->assertIsObject($files[$index]);
         $this->assertEquals($md5, md5($files[$index]->getContents()));
         $this->assertEquals($fileName, $files[$index]->getFullName());
-        $this->assertEquals($size, $files[$index]->getLength());
+        $this->assertEquals($size, $files[$index]->getDataLength());
     }
 
-    public function referenceFileInfoProvider(): array
+    public function SampleFileInfoProvider(): array
     {
         return [
             [

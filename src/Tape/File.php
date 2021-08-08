@@ -112,47 +112,6 @@ class File
         $this->contentOffset = $contentOffset;
     }
 
-    //
-    //    /**
-    //     * @return mixed
-    //     */
-    //    public function getProgramVarsLength()
-    //    {
-    //        return $this->programVarsLength;
-    //    }
-    //
-    //    /**
-    //     * @return mixed
-    //     */
-    //    public function getProgramLength()
-    //    {
-    //        return $this->programLength;
-    //    }
-    //
-    //    /**
-    //     * @return mixed
-    //     */
-    //    public function getDataArrayLength()
-    //    {
-    //        return $this->dataArrayLength;
-    //    }
-    //
-    //    /**
-    //     * @return mixed
-    //     */
-    //    public function getPrintNumber()
-    //    {
-    //        return $this->printNumber;
-    //    }
-    //
-    //    /**
-    //     * @return mixed
-    //     */
-    //    public function getPrintLength()
-    //    {
-    //        return $this->printLength;
-    //    }
-    //
     /**
      * @return mixed
      */

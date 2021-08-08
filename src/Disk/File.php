@@ -217,7 +217,7 @@ class File
         return $this->diskImage->getData(($this->track * self::SECTORS_IN_TRACK + $this->sector) * self::SECTOR_LENGTH, $this->dataLength);
     }
 
-    public function getLength(): int
+    public function getDataLength(): int
     {
         return $this->dataLength;
     }
