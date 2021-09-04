@@ -59,6 +59,17 @@ class Tap
         return null;
     }
 
+    protected function parseBlock(string $binary, int $pointer)
+    {
+        while ($pointer < $binaryLength) {
+            $blockSize = $this->parseWord($binary, $pointer);
+            $pointer += 2;
+
+            $blockType = $this->parseByte($binary, $pointer);
+            $pointer++;
+        }
+    }
+
     protected function parseBinary()
     {
         $pointer = 0;
@@ -67,12 +78,13 @@ class Tap
         $dataFilesAmount = 1;
 
         $binaryLength = strlen($this->binary);
-        while ($pointer < $binaryLength) {
-            $blockSize = $this->parseWord($this->binary, $pointer);
-            $pointer += 2;
-
-            $blockType = $this->parseByte($this->binary, $pointer);
-            $pointer++;
+        while ($block = $this->parseBlock($this->binary, $pointer)) {
+//        while ($pointer < $binaryLength) {
+//            $blockSize = $this->parseWord($this->binary, $pointer);
+//            $pointer += 2;
+//
+//            $blockType = $this->parseByte($this->binary, $pointer);
+//            $pointer++;
 
             // valid block is bigger than 2
             if ($blockSize >= 2) {
