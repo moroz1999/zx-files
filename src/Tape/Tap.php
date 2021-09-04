@@ -14,6 +14,8 @@ class Tap
     const CHAR_ARRAY = 2;
     const CODE = 3;
 
+    const TYPE_HEADER = 0;
+
     protected $binary;
     /**
      * @var File[]
@@ -26,6 +28,35 @@ class Tap
             $this->binary = $binary;
             $this->parseBinary();
         }
+    }
+
+    protected function getFileHeader(string $binary, int $pointer, $headerLength): ?FileHeader
+    {
+        if ($headerString = substr($this->binary, $pointer, $headerLength)) {
+            $type = $this->parseByte($headerString, 0);
+
+            $name = trim(substr($headerString, 1, 10));
+            $dataLength = $this->parseWord($headerString, 11);
+            $autoStartLine = null;
+            $variableAreaStart = null;
+            $codeStart = null;
+            if ($type == self::PROGRAM) {
+                $autoStartLine = $this->parseWord($headerString, 13);
+                $variableAreaStart = $this->parseWord($headerString, 15);
+            } elseif ($type == self::CODE) {
+                $codeStart = $this->parseWord($headerString, 13);
+            }
+            $fileHeader = new FileHeader(
+                $type,
+                $name,
+                $dataLength,
+                $autoStartLine,
+                $variableAreaStart,
+                $codeStart
+            );
+            return $fileHeader;
+        }
+        return null;
     }
 
     protected function parseBinary()
@@ -41,30 +72,30 @@ class Tap
             $pointer += 2;
 
             $blockType = $this->parseByte($this->binary, $pointer);
-
             $pointer++;
+
+            // valid block is bigger than 2
             if ($blockSize >= 2) {
+                //block size includes checksum and blocktype
                 $dataLength = $blockSize - 2;
 
-                if ($dataLength > 0 && $blockType == 0) {
-                    if ($fileHeader = substr($this->binary, $pointer, $dataLength)) {
-                        $type = $this->parseByte($fileHeader, 0);
+                if ($dataLength > 0 && $blockType == self::TYPE_HEADER) {
+                    if ($fileHeader = $this->getFileHeader($this->binary, $pointer, $dataLength)) {
+                        $pointer += $dataLength;
 
-                        $name = trim(substr($fileHeader, 1, 10));
-                        $dataLength = $this->parseWord($fileHeader, 11);
-                        $autoStartLine = null;
-                        $variableAreaStart = null;
-                        $codeStart = null;
-                        if ($type == self::PROGRAM) {
-                            $autoStartLine = $this->parseWord($fileHeader, 13);
-                            $variableAreaStart = $this->parseWord($fileHeader, 15);
-                        } elseif ($type == self::CODE) {
-                            $codeStart = $this->parseWord($fileHeader, 13);
-                        }
-                        $file = new File($this, $type, $name, $dataLength, $autoStartLine, $variableAreaStart, $codeStart);
+                        $file = new File(
+                            $this,
+                            $pointer,
+                            $fileHeader->type,
+                            $fileHeader->name,
+                            $fileHeader->dataLength,
+                            $fileHeader->autoStartLine,
+                            $fileHeader->variableAreaStart,
+                            $fileHeader->codeStart
+                        );
                         $this->files[] = $file;
                     }
-                    $pointer += $dataLength;
+
                     $checksum = $this->parseByte($this->binary, $pointer);
                     $pointer++;
                 } else {
@@ -74,8 +105,6 @@ class Tap
                         $file->setName('data' . sprintf('%02d', $dataFilesAmount));
                         $dataFilesAmount++;
                     }
-                    $file->setContentOffset($pointer);
-                    $file->setDataLength($dataLength);
 
                     $pointer += $dataLength;
 

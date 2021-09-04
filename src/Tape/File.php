@@ -13,11 +13,11 @@ class File
     const CHAR_ARRAY = 2;
     const CODE = 3;
 
-    protected $extension;
-    protected $contentOffset;
+    public $extension;
 
     public function __construct(
         protected Tap    $tapeImage,
+        protected int    $contentOffset,
         protected int    $type,
         protected string $name,
         protected int    $dataLength,
