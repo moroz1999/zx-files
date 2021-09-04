@@ -1,4 +1,5 @@
 <?php
+
 namespace ZxFiles\Tape;
 
 use ZxFiles;
@@ -12,56 +13,24 @@ class File
     const CHAR_ARRAY = 2;
     const CODE = 3;
 
-    /**
-     * @var Tap
-     */
-    protected $tapeImage;
-    protected $name;
     protected $extension;
-
-    protected $autoStartLine;
-    protected $variableAreaStart;
-
-    protected $codeStart;
-    protected $codeLength;
-
     protected $contentOffset;
-    protected $dataLength;
-    protected $type; //0,1,2 or 3 for a Program, Number array, Character array or Code file
 
-    public function __construct($tapeImage)
+    public function __construct(
+        protected Tap    $tapeImage,
+        protected int    $type,
+        protected string $name,
+        protected int    $dataLength,
+        protected ?int   $autoStartLine = null,
+        protected ?int   $variableAreaStart = null,
+        protected ?int   $codeStart = null
+    )
     {
-        $this->tapeImage = $tapeImage;
-    }
-
-    public function setFileHeader($fileHeader)
-    {
-        $this->type = $this->parseByte($fileHeader, 0);
         if ($this->type == self::PROGRAM) {
             $this->extension = 'B';
         } else {
             $this->extension = 'C';
         }
-        $this->name = trim(substr($fileHeader, 1, 10));
-        $this->dataLength = $this->parseWord($fileHeader, 11);
-        if ($this->type == self::PROGRAM) {
-            $this->autoStartLine = $this->parseWord($fileHeader, 13);
-            $this->variableAreaStart = $this->parseWord($fileHeader, 15);
-        } elseif ($this->type == self::CODE) {
-            $this->codeStart = $this->parseWord($fileHeader, 13);
-        } else {
-            //                todo: find examples of other files
-        }
-
-        return true;
-    }
-
-    /**
-     * @param mixed $dataLength
-     */
-    public function setDataLength($dataLength)
-    {
-        $this->dataLength = $dataLength;
     }
 
     /**
@@ -73,14 +42,6 @@ class File
             return $this->name . '.' . $this->extension;
         }
         return $this->name;
-    }
-
-    /**
-     * @param mixed $name
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
     }
 
     /**
@@ -105,11 +66,6 @@ class File
     public function getDataLength()
     {
         return $this->dataLength;
-    }
-
-    public function setContentOffset($contentOffset)
-    {
-        $this->contentOffset = $contentOffset;
     }
 
     /**

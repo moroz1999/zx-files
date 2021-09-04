@@ -1,4 +1,5 @@
 <?php
+
 namespace ZxFiles\Tape;
 
 use ZxFiles;
@@ -8,6 +9,10 @@ class Tap
     use ZxFiles\ByteParser;
 
     //    const FILE_HEADER_LENGTH = 24;
+    const PROGRAM = 0;
+    const NUM_ARRAY = 1;
+    const CHAR_ARRAY = 2;
+    const CODE = 3;
 
     protected $binary;
     /**
@@ -37,39 +42,50 @@ class Tap
 
             $blockType = $this->parseByte($this->binary, $pointer);
 
-            $pointer += 1;
-            if ($blockSize >=2){
+            $pointer++;
+            if ($blockSize >= 2) {
                 $dataLength = $blockSize - 2;
-            } else {
-                $dataLength = 0;
-            }
-            if ($dataLength > 0 && $blockType == 0) {
-                $file = new File($this);
 
-                if ($fileHeader = substr($this->binary, $pointer, $dataLength)) {
-                    if ($file->setFileHeader($fileHeader)) {
+                if ($dataLength > 0 && $blockType == 0) {
+                    if ($fileHeader = substr($this->binary, $pointer, $dataLength)) {
+                        $type = $this->parseByte($fileHeader, 0);
+
+                        $name = trim(substr($fileHeader, 1, 10));
+                        $dataLength = $this->parseWord($fileHeader, 11);
+                        $autoStartLine = null;
+                        $variableAreaStart = null;
+                        $codeStart = null;
+                        if ($type == self::PROGRAM) {
+                            $autoStartLine = $this->parseWord($fileHeader, 13);
+                            $variableAreaStart = $this->parseWord($fileHeader, 15);
+                        } elseif ($type == self::CODE) {
+                            $codeStart = $this->parseWord($fileHeader, 13);
+                        }
+                        $file = new File($this, $type, $name, $dataLength, $autoStartLine, $variableAreaStart, $codeStart);
                         $this->files[] = $file;
                     }
+                    $pointer += $dataLength;
+                    $checksum = $this->parseByte($this->binary, $pointer);
+                    $pointer++;
+                } else {
+                    if (!$file) {
+                        $file = new File($this, self::CODE);
+                        $this->files[] = $file;
+                        $file->setName('data' . sprintf('%02d', $dataFilesAmount));
+                        $dataFilesAmount++;
+                    }
+                    $file->setContentOffset($pointer);
+                    $file->setDataLength($dataLength);
+
+                    $pointer += $dataLength;
+
+                    $checksum = $this->parseByte($this->binary, $pointer);
+                    $pointer++;
+
+                    $file = null;
                 }
-                $pointer += $dataLength;
-                $checksum = $this->parseByte($this->binary, $pointer);
-                $pointer += 1;
             } else {
-                if (!$file) {
-                    $file = new File($this);
-                    $this->files[] = $file;
-                    $file->setName('data'.sprintf('%02d', $dataFilesAmount));
-                    $dataFilesAmount++;
-                }
-                $file->setContentOffset($pointer);
-                $file->setDataLength($dataLength);
-
-                $pointer += $dataLength;
-
-                $checksum = $this->parseByte($this->binary, $pointer);
-                $pointer += 1;
-
-                $file = null;
+                $file = new File($this);
             }
         }
     }
