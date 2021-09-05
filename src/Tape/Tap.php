@@ -61,12 +61,22 @@ class Tap
 
     protected function parseBlock(string $binary, int $pointer)
     {
-        while ($pointer < $binaryLength) {
+        if ($pointer < strlen($this->binary)) {
             $blockSize = $this->parseWord($binary, $pointer);
             $pointer += 2;
+            if ($blockSize > 2){
+                $blockType = $this->parseByte($binary, $pointer);
+                $pointer++;
 
-            $blockType = $this->parseByte($binary, $pointer);
-            $pointer++;
+                $dataStartOffset = $pointer;
+                $pointer += $blockSize - 2;
+
+                $checksum = $this->parseByte($this->binary, $pointer);
+                $pointer++;
+
+                $block = new Block($blockType, $this, $dataStartOffset, $checksum);
+                return $block;
+            }
         }
     }
 
@@ -77,7 +87,6 @@ class Tap
 
         $dataFilesAmount = 1;
 
-        $binaryLength = strlen($this->binary);
         while ($block = $this->parseBlock($this->binary, $pointer)) {
 //        while ($pointer < $binaryLength) {
 //            $blockSize = $this->parseWord($this->binary, $pointer);
