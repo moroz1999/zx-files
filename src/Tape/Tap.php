@@ -2,6 +2,7 @@
 
 namespace ZxFiles\Tape;
 
+use JetBrains\PhpStorm\Pure;
 use ZxFiles;
 
 class Tap
@@ -14,9 +15,8 @@ class Tap
     const CHAR_ARRAY = 2;
     const CODE = 3;
 
-    const TYPE_HEADER = 0;
-
-    protected $binary;
+    protected int $pointer = 0;
+    protected string $binary = '';
     /**
      * @var File[]
      */
@@ -30,23 +30,23 @@ class Tap
         }
     }
 
-    protected function getFileHeader(string $binary, int $pointer, $headerLength): ?FileHeader
+    #[Pure] protected function getFileHeader(string $binary, $headerLength): ?FileHeader
     {
-        if ($headerString = substr($this->binary, $pointer, $headerLength)) {
+        if ($headerString = substr($binary, $this->pointer, $headerLength)) {
             $type = $this->parseByte($headerString, 0);
 
             $name = trim(substr($headerString, 1, 10));
             $dataLength = $this->parseWord($headerString, 11);
-            $autoStartLine = null;
-            $variableAreaStart = null;
-            $codeStart = null;
+            $autoStartLine = 0;
+            $variableAreaStart = 0;
+            $codeStart = 0;
             if ($type == self::PROGRAM) {
                 $autoStartLine = $this->parseWord($headerString, 13);
                 $variableAreaStart = $this->parseWord($headerString, 15);
             } elseif ($type == self::CODE) {
                 $codeStart = $this->parseWord($headerString, 13);
             }
-            $fileHeader = new FileHeader(
+            return new FileHeader(
                 $type,
                 $name,
                 $dataLength,
@@ -54,59 +54,49 @@ class Tap
                 $variableAreaStart,
                 $codeStart
             );
-            return $fileHeader;
         }
         return null;
     }
 
-    protected function parseBlock(string $binary, int $pointer)
+    protected function parseBlock(string $binary): ?Block
     {
-        if ($pointer < strlen($this->binary)) {
-            $blockSize = $this->parseWord($binary, $pointer);
-            $pointer += 2;
-            if ($blockSize > 2){
-                $blockType = $this->parseByte($binary, $pointer);
-                $pointer++;
+        if ($this->pointer < strlen($this->binary)) {
+            $blockSize = $this->parseWord($binary, $this->pointer);
+            $this->pointer += 2;
+            if ($blockSize > 2) {
+                $blockType = $this->parseByte($binary, $this->pointer);
+                $this->pointer++;
 
-                $dataStartOffset = $pointer;
-                $pointer += $blockSize - 2;
+                $dataStartOffset = $this->pointer;
+                $this->pointer += $blockSize - 2;
 
-                $checksum = $this->parseByte($this->binary, $pointer);
-                $pointer++;
+                $checksum = $this->parseByte($this->binary, $this->pointer);
+                $this->pointer++;
 
-                $block = new Block($blockType, $this, $dataStartOffset, $checksum);
-                return $block;
+                return new Block($blockType, $this, $blockSize, $dataStartOffset, $checksum);
+            } else {
+                return new Block(Block::TYPE_FRAGMENT, $this, $blockSize, $this->pointer, '');
             }
         }
+        return null;
     }
 
     protected function parseBinary()
     {
-        $pointer = 0;
+        $this->pointer = 0;
         $file = false;
 
         $dataFilesAmount = 1;
 
-        while ($block = $this->parseBlock($this->binary, $pointer)) {
-//        while ($pointer < $binaryLength) {
-//            $blockSize = $this->parseWord($this->binary, $pointer);
-//            $pointer += 2;
-//
-//            $blockType = $this->parseByte($this->binary, $pointer);
-//            $pointer++;
-
+        while ($block = $this->parseBlock($this->binary)) {
             // valid block is bigger than 2
-            if ($blockSize >= 2) {
-                //block size includes checksum and blocktype
-                $dataLength = $blockSize - 2;
-
-                if ($dataLength > 0 && $blockType == self::TYPE_HEADER) {
-                    if ($fileHeader = $this->getFileHeader($this->binary, $pointer, $dataLength)) {
-                        $pointer += $dataLength;
-
+            if ($block->dataLength > 0 && $block->type == Block::TYPE_HEADER) {
+                if ($fileHeader = $this->getFileHeader($this->binary, $block->dataLength)) {
+                    $this->pointer += $block->dataLength;
+                    if (($dataBlock = $this->parseBlock($this->binary)) && $dataBlock->type === Block::TYPE_DATA) {
                         $file = new File(
                             $this,
-                            $pointer,
+                            $this->pointer,
                             $fileHeader->type,
                             $fileHeader->name,
                             $fileHeader->dataLength,
@@ -115,30 +105,28 @@ class Tap
                             $fileHeader->codeStart
                         );
                         $this->files[] = $file;
+
+                        $this->pointer += $block->dataLength;
                     }
-
-                    $checksum = $this->parseByte($this->binary, $pointer);
-                    $pointer++;
-                } else {
-                    if (!$file) {
-                        $file = new File($this, self::CODE);
-                        $this->files[] = $file;
-                        $file->setName('data' . sprintf('%02d', $dataFilesAmount));
-                        $dataFilesAmount++;
-                    }
-
-                    $pointer += $dataLength;
-
-                    $checksum = $this->parseByte($this->binary, $pointer);
-                    $pointer++;
-
-                    $file = null;
                 }
             } else {
-                $file = new File($this);
+                $file = new File(
+                    $this,
+                    $this->pointer,
+                    File::CODE,
+                    'fragment.C',
+                    $block->dataLength,
+                    0,
+                    0,
+                    0
+                );
+                $this->files[] = $file;
+
+                $this->pointer += $block->dataLength;
             }
         }
     }
+
 
     public function getData($start = 0, $offset = null)
     {

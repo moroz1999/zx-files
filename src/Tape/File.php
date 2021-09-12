@@ -81,7 +81,7 @@ class File
      */
     public function getCodeLength()
     {
-        return $this->codeLength;
+        return $this->dataLength;
     }
 
     public function getContents()
