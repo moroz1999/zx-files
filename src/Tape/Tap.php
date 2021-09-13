@@ -30,9 +30,9 @@ class Tap
         }
     }
 
-    #[Pure] protected function getFileHeader(string $binary, $headerLength): ?FileHeader
+    #[Pure] protected function getFileHeader(string $binary, $offset, $headerLength): ?FileHeader
     {
-        if ($headerString = substr($binary, $this->pointer, $headerLength)) {
+        if ($headerString = substr($binary, $offset, $headerLength)) {
             $type = $this->parseByte($headerString, 0);
 
             $name = trim(substr($headerString, 1, 10));
@@ -91,7 +91,7 @@ class Tap
         while ($block = $this->parseBlock($this->binary)) {
             // valid block is bigger than 2
             if ($block->dataLength > 0 && $block->type == Block::TYPE_HEADER) {
-                if ($fileHeader = $this->getFileHeader($this->binary, $block->dataLength)) {
+                if ($fileHeader = $this->getFileHeader($this->binary, $block->offset, $block->dataLength)) {
                     $this->pointer += $block->dataLength;
                     if (($dataBlock = $this->parseBlock($this->binary)) && $dataBlock->type === Block::TYPE_DATA) {
                         $file = new File(
