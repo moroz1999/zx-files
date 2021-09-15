@@ -9,7 +9,7 @@ class Tap
 {
     use ZxFiles\ByteParser;
 
-    protected int $pointer = 0;
+    protected int $offset = 0;
     protected string $binary = '';
     /**
      * @var File[]
@@ -54,23 +54,24 @@ class Tap
 
     protected function parseBlock(string $binary): ?Block
     {
-        if ($this->pointer < strlen($this->binary)) {
+        if ($this->offset < strlen($this->binary)) {
+            $blockStartOffset = $this->offset;
+            $blockSize = $this->parseWord($binary, $this->offset);
+            $this->offset += 2;
+            if ($blockSize > 2) {
+                $blockType = $this->parseByte($binary, $this->offset);
+                $this->offset++;
 
-            $dataLength = $this->parseWord($binary, $this->pointer);
-            $this->pointer += 2;
-            if ($dataLength > 2) {
-                $blockType = $this->parseByte($binary, $this->pointer);
-                $this->pointer++;
+                $dataLength = $blockSize - 2;
+                $dataStartOffset = $this->offset;
+                $this->offset += $dataLength;
 
-                $dataStartOffset = $this->pointer;
-                $this->pointer += $dataLength - 2;
+                $checksum = $this->parseByte($this->binary, $this->offset);
+                $this->offset++;
 
-                $checksum = $this->parseByte($this->binary, $this->pointer);
-                $this->pointer++;
-
-                return new Block($blockType, $this, $dataLength, $dataStartOffset, $checksum);
+                return new Block($blockType, $this, $blockStartOffset, $blockSize, $dataLength, $dataStartOffset, $checksum);
             } else {
-                return new Block(Block::TYPE_FRAGMENT, $this, $dataLength, $this->pointer, '');
+                return new Block(Block::TYPE_FRAGMENT, $this, $blockStartOffset, $blockSize, $blockSize, $this->offset, '');
             }
         }
         return null;
@@ -78,7 +79,7 @@ class Tap
 
     protected function parseBinary()
     {
-        $this->pointer = 0;
+        $this->offset = 0;
         $file = false;
 
         $dataFilesAmount = 1;
@@ -104,10 +105,10 @@ class Tap
                 if ($block->type === Block::TYPE_DATA) {
                     $file = new File(
                         $this,
-                        $dataBlock->dataStartOffset,
-                        File::CODE,
+                        $block->dataStartOffset,
+                        File::UNDEFINED,
                         'data' . sprintf('%02d', $dataFilesAmount++),
-                        $block->dataLength - 2,
+                        $block->dataLength,
                         0,
                         0,
                         0
@@ -115,8 +116,8 @@ class Tap
                 } elseif ($block->type === Block::TYPE_FRAGMENT) {
                     $file = new File(
                         $this,
-                        $this->pointer,
-                        File::CODE,
+                        $this->offset,
+                        File::UNDEFINED,
                         'fragment' . sprintf('%02d', $dataFilesAmount++),
                         $block->dataLength,
                         0,

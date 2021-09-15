@@ -12,13 +12,14 @@ class File
     const NUM_ARRAY = 1;
     const CHAR_ARRAY = 2;
     const CODE = 3;
+    const UNDEFINED = null;
 
     public $extension;
 
     public function __construct(
         protected Tap    $tapeImage,
         protected int    $contentOffset,
-        protected int    $type,
+        protected ?int   $type,
         protected string $name,
         protected int    $dataLength,
         protected ?int   $autoStartLine = null,
@@ -26,10 +27,12 @@ class File
         protected ?int   $codeStart = null
     )
     {
-        if ($this->type == self::PROGRAM) {
+        if ($this->type === self::PROGRAM) {
             $this->extension = 'B';
-        } else {
+        } elseif ($this->type === self::CODE) {
             $this->extension = 'C';
+        } else {
+            $this->extension = '';
         }
     }
 
