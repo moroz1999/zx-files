@@ -9,12 +9,6 @@ class Tap
 {
     use ZxFiles\ByteParser;
 
-    //    const FILE_HEADER_LENGTH = 24;
-    const PROGRAM = 0;
-    const NUM_ARRAY = 1;
-    const CHAR_ARRAY = 2;
-    const CODE = 3;
-
     protected int $pointer = 0;
     protected string $binary = '';
     /**
@@ -40,10 +34,10 @@ class Tap
             $autoStartLine = 0;
             $variableAreaStart = 0;
             $codeStart = 0;
-            if ($type == self::PROGRAM) {
+            if ($type == File::PROGRAM) {
                 $autoStartLine = $this->parseWord($headerString, 13);
                 $variableAreaStart = $this->parseWord($headerString, 15);
-            } elseif ($type == self::CODE) {
+            } elseif ($type == File::CODE) {
                 $codeStart = $this->parseWord($headerString, 13);
             }
             return new FileHeader(
@@ -61,21 +55,22 @@ class Tap
     protected function parseBlock(string $binary): ?Block
     {
         if ($this->pointer < strlen($this->binary)) {
-            $blockSize = $this->parseWord($binary, $this->pointer);
+
+            $dataLength = $this->parseWord($binary, $this->pointer);
             $this->pointer += 2;
-            if ($blockSize > 2) {
+            if ($dataLength > 2) {
                 $blockType = $this->parseByte($binary, $this->pointer);
                 $this->pointer++;
 
                 $dataStartOffset = $this->pointer;
-                $this->pointer += $blockSize - 2;
+                $this->pointer += $dataLength - 2;
 
                 $checksum = $this->parseByte($this->binary, $this->pointer);
                 $this->pointer++;
 
-                return new Block($blockType, $this, $blockSize, $dataStartOffset, $checksum);
+                return new Block($blockType, $this, $dataLength, $dataStartOffset, $checksum);
             } else {
-                return new Block(Block::TYPE_FRAGMENT, $this, $blockSize, $this->pointer, '');
+                return new Block(Block::TYPE_FRAGMENT, $this, $dataLength, $this->pointer, '');
             }
         }
         return null;
@@ -89,14 +84,12 @@ class Tap
         $dataFilesAmount = 1;
 
         while ($block = $this->parseBlock($this->binary)) {
-            // valid block is bigger than 2
             if ($block->dataLength > 0 && $block->type == Block::TYPE_HEADER) {
-                if ($fileHeader = $this->getFileHeader($this->binary, $block->offset, $block->dataLength)) {
-                    $this->pointer += $block->dataLength;
+                if ($fileHeader = $this->getFileHeader($this->binary, $block->dataStartOffset, $block->dataLength)) {
                     if (($dataBlock = $this->parseBlock($this->binary)) && $dataBlock->type === Block::TYPE_DATA) {
                         $file = new File(
                             $this,
-                            $this->pointer,
+                            $dataBlock->dataStartOffset,
                             $fileHeader->type,
                             $fileHeader->name,
                             $fileHeader->dataLength,
@@ -105,24 +98,33 @@ class Tap
                             $fileHeader->codeStart
                         );
                         $this->files[] = $file;
-
-                        $this->pointer += $block->dataLength;
                     }
                 }
             } else {
-                $file = new File(
-                    $this,
-                    $this->pointer,
-                    File::CODE,
-                    'fragment.C',
-                    $block->dataLength,
-                    0,
-                    0,
-                    0
-                );
+                if ($block->type === Block::TYPE_DATA) {
+                    $file = new File(
+                        $this,
+                        $dataBlock->dataStartOffset,
+                        File::CODE,
+                        'data' . sprintf('%02d', $dataFilesAmount++),
+                        $block->dataLength - 2,
+                        0,
+                        0,
+                        0
+                    );
+                } elseif ($block->type === Block::TYPE_FRAGMENT) {
+                    $file = new File(
+                        $this,
+                        $this->pointer,
+                        File::CODE,
+                        'fragment' . sprintf('%02d', $dataFilesAmount++),
+                        $block->dataLength,
+                        0,
+                        0,
+                        0
+                    );
+                }
                 $this->files[] = $file;
-
-                $this->pointer += $block->dataLength;
             }
         }
     }

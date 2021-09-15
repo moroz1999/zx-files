@@ -38,7 +38,7 @@ class TapTest extends TestCase
                 'index' => 0,
                 'md5' => '12ad0292f9d8e97167cf3e755e08b79c',
                 'fileName' => 'Airwolf.B',
-                'size' => 104,
+                'size' => 100,
             ],
             [
                 'index' => 1,
