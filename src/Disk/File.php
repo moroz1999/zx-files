@@ -53,6 +53,9 @@ class File
             $this->name = trim(substr($fileHeader, 0, 8));
             $this->extension = substr($fileHeader, 8, 1);
 
+            $this->name = preg_replace('/[[:^print:]]/', '', $this->name);
+            $this->extension = preg_replace('/[[:^print:]]/', '', $this->extension);
+
             $this->sectorsLength = $this->parseByte($fileHeader, 13);
             if ($headerLength == 16) {
                 $this->sector = $this->parseByte($fileHeader, 14);
