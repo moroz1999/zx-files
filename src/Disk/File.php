@@ -56,7 +56,7 @@ class File
             $this->name = preg_replace('/[[:^print:]]/', '', $this->name);
             $this->extension = preg_replace('/[[:^print:]]/', '', $this->extension);
 
-            $this->sectorsLength = $this->parseByte($fileHeader, 13);
+            $this->sectorsLength = (int)$this->parseByte($fileHeader, 13);
             if ($headerLength == 16) {
                 $this->sector = $this->parseByte($fileHeader, 14);
                 $this->track = $this->parseByte($fileHeader, 15);
@@ -64,7 +64,11 @@ class File
             if ($this->extension == 'B') {
                 $this->programVarsLength = $this->parseWord($fileHeader, 9);
                 $this->programLength = $this->parseWord($fileHeader, 11);
-                $this->dataLength = $this->programLength;
+                if ((int)ceil($this->programVarsLength / 256) === $this->sectorsLength) {
+                    $this->dataLength = $this->programVarsLength;
+                } else {
+                    $this->dataLength = $this->sectorsLength * 256;
+                }
             } elseif ($this->extension == 'D') {
                 $this->dataArrayLength = $this->parseWord($fileHeader, 11);
                 $this->dataLength = $this->dataArrayLength;

@@ -84,4 +84,46 @@ class TrdTest extends TestCase
             ],
         ];
     }
+
+    public function testParsesSampleTrd2(): Trd
+    {
+        $trd = new Trd();
+        $trd->setBinary(file_get_contents(realpath(__DIR__ . '\..\..\samples\E96INFO2.TRD')));
+        $files = $trd->getFiles();
+        $this->assertIsArray($files);
+        $this->assertCount(2, $files);
+
+        return $trd;
+    }
+
+    /**
+     * @depends      testParsesSampleTrd2
+     * @dataProvider SampleFileInfoProvider2
+     */
+    public function testFile2(int $index, string $md5, string $fileName, int $size, Trd $trd): void
+    {
+        $files = $trd->getFiles();
+        $this->assertIsObject($files[$index]);
+        $this->assertEquals($md5, md5($files[$index]->getContents()));
+        $this->assertEquals($fileName, $files[$index]->getFullName());
+        $this->assertEquals($size, $files[$index]->getDataLength());
+    }
+
+    public function SampleFileInfoProvider2(): array
+    {
+        return [
+            [
+                'index' => 0,
+                'md5' => '8559c16a433b77bfde6fe72215304196',
+                'fileName' => 'E96INFO2.B',
+                'size' => 12544,
+            ],
+            [
+                'index' => 1,
+                'md5' => '766b0bf9084e48cff41957b072c268a5',
+                'fileName' => 'boot.B',
+                'size' => 32,
+            ],
+        ];
+    }
 }

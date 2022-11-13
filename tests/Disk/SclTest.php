@@ -36,9 +36,9 @@ class SclTest extends TestCase
         return [
             [
                 'index' => 0,
-                'md5' => '5261a7cc722b1bd45f2c4ddb96446785',
+                'md5' => '362957931a24d3072ed6b98028b69dd5',
                 'fileName' => 'boot.B',
-                'size' => 20189,
+                'size' => 20356,
             ],
             [
                 'index' => 1,
