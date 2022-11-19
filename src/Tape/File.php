@@ -17,7 +17,7 @@ class File
     public $extension;
 
     public function __construct(
-        protected Tap    $tapeImage,
+        protected Tape   $tapeImage,
         protected int    $contentOffset,
         protected ?int   $type,
         protected string $name,

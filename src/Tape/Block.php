@@ -9,7 +9,7 @@ class Block
 
     public function __construct(
         public ?int    $type,
-        public Tap     $tape,
+        public Tape    $tape,
         public int     $blockStartOffset,
         public int     $blockSize,
         public int     $dataLength,
