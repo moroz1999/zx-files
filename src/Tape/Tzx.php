@@ -119,14 +119,10 @@ class Tzx implements Tape
                     case 0x30:
                         //ID 30 - Text description
                         $this->offset += $this->parseByte($this->binary, $this->offset) + 1;
-                        //todo: make text file from this?
-                        throw new \Exception('TZX text description found' . $id);
                         break;
                     case 0x31:
                         //ID 31 - Message block
                         $this->offset += $this->parseByte($this->binary, $this->offset) + 2;
-                        //todo: make text file from this?
-                        throw new \Exception('TZX text message found' . $id);
                         break;
                     case 0x32:
                         //ID 32 - Archive info
@@ -135,15 +131,11 @@ class Tzx implements Tape
                     case 0x33:
                         //ID 33 - Hardware type
                         $this->offset += $this->parseByte($this->binary, $this->offset) * 3 + 1;
-                        //todo: make text file from this?
-                        throw new \Exception('TZX Hardware type found' . $id);
                         break;
                     case 0x35:
                         //ID 35 - Custom info block
                         $this->offset += 10;
                         $this->offset += $this->parseDWord($this->binary, $this->offset) + 4;
-                        //todo: make text file from this?
-                        throw new \Exception('TZX Custom info found' . $id);
                         break;
                     case 0x5a:
                         //ID 5A - "Glue" block
