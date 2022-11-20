@@ -4,6 +4,7 @@ namespace ZxFiles\Tape;
 
 class Block
 {
+    const HEADER_LENGTH = 17;
     const TYPE_HEADER = 0;
     const TYPE_DATA = 255;
 
@@ -17,6 +18,8 @@ class Block
         public ?string $checksum = null
     )
     {
-
+        if ($this->type !== self::TYPE_HEADER && $this->type !== self::TYPE_DATA) {
+//            throw new \Exception('Invalid block type ' . $this->type);
+        }
     }
 }

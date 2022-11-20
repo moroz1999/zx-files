@@ -109,9 +109,9 @@ class TapTest extends TestCase
             ],
             [
                 'index' => 2,
-                'md5' => 'd41d8cd98f00b204e9800998ecf8427e',
+                'md5' => '9e688c58a5487b8eaf69c9e1005ad0bf',
                 'fileName' => 'data01',
-                'size' => 0,
+                'size' => 1,
             ],
             [
                 'index' => 3,

@@ -10,5 +10,6 @@ if (!is_dir($dir)) {
 $trd = new Trd();
 $trd->setBinary(file_get_contents('../samples/size_matters_by_insiders.trd'));
 foreach ($trd->getFiles() as $file) {
+    echo $file->getFullName() . ' ' . $file->getDataLength() . '<br>';
     file_put_contents($dir . '/' . $file->getFullName(), $file->getContents());
 }

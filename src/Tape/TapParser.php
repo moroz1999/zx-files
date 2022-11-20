@@ -48,8 +48,19 @@ trait TapParser
             $blockStartOffset = $this->offset;
             $blockSize = $this->parseWord($binary, $this->offset);
             $this->offset += 2;
+            if ($blockSize <= 3) {
+                //invalid length, fix it (?)
+                $blockSize += 2;
+            }
             if ($blockSize > 3) {
                 $blockType = $this->parseByte($binary, $this->offset);
+                if ($blockType === Block::TYPE_HEADER && ($blockSize - 2) !== Block::HEADER_LENGTH) {
+                    $blockType = Block::TYPE_DATA;
+
+                    if ($this->parseByte($binary, $this->offset + 1) === Block::TYPE_DATA) {
+                        $this->offset++;
+                    }
+                }
                 $this->offset++;
 
                 $dataLength = $blockSize - 2;
@@ -61,9 +72,16 @@ trait TapParser
 
                 return new Block($blockType, $this, $blockStartOffset, $blockSize, $dataLength, $dataStartOffset, $checksum);
             } else {
-                $this->offset += $blockSize;
-                $dataLength = max(0, $blockSize - 2);
-                return new Block(null, $this, $blockStartOffset, $blockSize, $dataLength, $this->offset, '');
+                //invalid fragment
+                //search for next non-zero byte to find next block
+                $blockSize = 0;
+                while ($this->parseByte($binary, $this->offset) === 0) {
+                    $blockSize++;
+                    $this->offset++;
+                }
+
+                $dataLength = $blockSize;
+                return new Block(Block::TYPE_DATA, $this, $blockStartOffset, $blockSize, $dataLength, $this->offset, '');
             }
         }
         return null;

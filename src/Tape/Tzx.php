@@ -37,7 +37,8 @@ class Tzx implements Tape
         $length = strlen($this->binary);
         $blocks = [];
         if ($this->parseTzxHeader()) {
-            while ($id = $this->parseByte($this->binary, $this->offset++)) {
+            while (($this->offset < $length)) {
+                $id = $this->parseByte($this->binary, $this->offset++);
                 $block = false;
                 switch ($id) {
                     case 0x10:
@@ -130,8 +131,6 @@ class Tzx implements Tape
                     case 0x32:
                         //ID 32 - Archive info
                         $this->offset += $this->parseWord($this->binary, $this->offset) + 2;
-                        //todo: make text file from this?
-                        throw new \Exception('TZX archive info found' . $id);
                         break;
                     case 0x33:
                         //ID 33 - Hardware type
@@ -151,7 +150,8 @@ class Tzx implements Tape
                         $this->offset += 9;
                         break;
                     default:
-                        throw new \Exception('Unknown TZX block type ' . $id);
+//                        throw new \Exception('Unknown TZX block type ' . $id);
+                        break;
                 }
                 if ($block) {
                     $blocks[] = $block;
