@@ -48,11 +48,11 @@ trait TapParser
             $blockStartOffset = $this->offset;
             $blockSize = $this->parseWord($binary, $this->offset);
             $this->offset += 2;
-            if ($blockSize <= 3) {
+            if ($blockSize > 1 && $blockSize < 3) {
                 //invalid length, fix it (?)
                 $blockSize += 2;
             }
-            if ($blockSize > 3) {
+            if ($blockSize >= 3) {
                 $blockType = $this->parseByte($binary, $this->offset);
                 if ($blockType === Block::TYPE_HEADER && ($blockSize - 2) !== Block::HEADER_LENGTH) {
                     $blockType = Block::TYPE_DATA;
