@@ -48,7 +48,7 @@ trait TapParser
             $blockStartOffset = $this->offset;
             $blockSize = $this->parseWord($binary, $this->offset);
             $this->offset += 2;
-            if ($blockSize > 1 && $blockSize < 3) {
+            if ($blockSize === 2) {
                 //invalid length, fix it (?)
                 $blockSize += 2;
             }
@@ -75,7 +75,7 @@ trait TapParser
                 //invalid fragment
                 //search for next non-zero byte to find next block
                 $blockSize = 0;
-                while ($this->parseByte($binary, $this->offset) === 0) {
+                while (($this->parseByte($binary, $this->offset) === 0) && ($this->offset < $limit)) {
                     $blockSize++;
                     $this->offset++;
                 }

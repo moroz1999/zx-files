@@ -6,3 +6,6 @@
 
 ## Tape images:
 * TAP
+
+## Run tests by executing:
+.\vendor\bin\phpunit .\

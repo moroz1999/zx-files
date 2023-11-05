@@ -208,4 +208,60 @@ class TapTest extends TestCase
     }
 
 
+
+    public function testParsesSampleTap3(): Tap
+    {
+        $tap = new Tap();
+        $tap->setBinary(file_get_contents(realpath(__DIR__ . '\..\..\samples\Rick+Dangerous.tap')));
+        $files = $tap->getFiles();
+        $this->assertIsArray($files);
+        $this->assertCount(4, $files);
+
+        return $tap;
+    }
+
+
+    /**
+     * @depends      testParsesSampleTap3
+     * @dataProvider SampleFileInfoProvider3
+     */
+    public function testFile3(int $index, string $md5, string $fileName, int $size, Tap $tap): void
+    {
+        $files = $tap->getFiles();
+        $this->assertIsObject($files[$index]);
+        $this->assertEquals($md5, md5($files[$index]->getContents()));
+        $this->assertEquals($fileName, $files[$index]->getFullName());
+        $this->assertEquals($size, $files[$index]->getDataLength());
+    }
+
+    public function SampleFileInfoProvider3(): array
+    {
+        return [
+            [
+                'index' => 0,
+                'md5' => 'a427886031af6649d81f670ac9c27881',
+                'fileName' => 'RICK_DAN.B',
+                'size' => 415,
+            ],
+            [
+                'index' => 1,
+                'md5' => '9b6281794aa49407797525a8f0f9d991',
+                'fileName' => 'RICK_DAN.1.C',
+                'size' => 38907,
+            ],
+            [
+                'index' => 2,
+                'md5' => '154587720b4280056d7330923414f44a',
+                'fileName' => 'RICK_DAN.2.C',
+                'size' => 227,
+            ],
+            [
+                'index' => 3,
+                'md5' => 'd41d8cd98f00b204e9800998ecf8427e',
+                'fileName' => 'data01',
+                'size' => 310,
+            ],
+        ];
+    }
+
 }
